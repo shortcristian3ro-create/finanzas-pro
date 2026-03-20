@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Control de Acceso</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 350px; text-align: center; }
+        .alerta { padding: 12px; margin-bottom: 20px; border-radius: 8px; font-size: 14px; background-color: {{ color_alerta }}; border: 1px solid rgba(0,0,0,0.05); }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        
+        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
+        button { flex: 1; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; transition: 0.3s; }
+        
+        .btn-login { background-color: #3498db; } /* Azul */
+        .btn-login:hover { background-color: #2980b9; }
+        
+        .btn-registro { background-color: #2ecc71; } /* Verde */
+        .btn-registro:hover { background-color: #27ae60; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>💰 Mi App</h1>
+        
+        {% if mensaje %}
+            <div class="alerta">{{ mensaje }}</div>
+        {% endif %}
+        
+        <form method="POST">
+            <input type="text" name="usuario" placeholder="Usuario" required>
+            <input type="password" name="password" placeholder="Contraseña" required>
+            
+            <div class="btn-group">
+                <button type="submit" name="accion" value="login" class="btn-login">Iniciar Sesión</button>
+                <button type="submit" name="accion" value="registro" class="btn-registro">Registrarme</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

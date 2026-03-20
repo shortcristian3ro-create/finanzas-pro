@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Control de Finanzas y Deudas</title>
+    <style>
+        :root { --p: #3498db; --s: #2ecc71; --d: #e74c3c; --w: #f39c12; --bg: #f4f7f6; --dark: #2c3e50; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: auto; display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; }
+        .box { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .full-width { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; }
+        .saldo-card { background: var(--dark); color: white; padding: 20px 40px; border-radius: 12px; text-align: center; }
+        .saldo-val { font-size: 32px; font-weight: bold; display: block; }
+        input, select { padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; width: 100%; box-sizing: border-box; }
+        button { cursor: pointer; border: none; border-radius: 8px; font-weight: bold; padding: 12px; color: white; transition: 0.3s; }
+        .btn-add { background: var(--s); } .btn-add:hover { background: #27ae60; }
+        .btn-debt { background: var(--p); width: 100%; margin-top: 10px; }
+        .btn-pay { background: var(--w); padding: 5px 10px; font-size: 12px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
+        .monto-Gasto { color: var(--d); font-weight: bold; }
+        .monto-Ingreso { color: var(--s); font-weight: bold; }
+        .chart-container { max-width: 350px; margin: 30px auto 0; }
+        .logout { color: #e74c3c; text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="box full-width">
+            <div>
+                <h2 style="margin:0">Hola, {{ nombre }} 👋</h2>
+                <a href="/logout" class="logout">Cerrar Sesión</a>
+            </div>
+            <div class="saldo-card">
+                <small>SALDO DISPONIBLE (Menos Deudas)</small>
+                <span class="saldo-val">${{ "%.2f"|format(saldo) }}</span>
+            </div>
+        </div>
+
+        <div class="box">
+            <h3>💰 Movimientos del Mes</h3>
+            <form method="POST" style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 10px;">
+                <input type="text" name="descripcion" placeholder="Descripción" required>
+                <input type="number" step="0.01" name="monto" placeholder="Monto" required>
+                <select name="categoria">
+                    <option value="Comida">🍎 Comida</option>
+                    <option value="Renta">🏠 Renta (Fijo)</option>
+                    <option value="Transporte">🚗 Transporte</option>
+                    <option value="Ocio">🎉 Ocio</option>
+                    <option value="Sueldo">💵 Sueldo</option>
+                </select>
+                <select name="tipo">
+                    <option value="Gasto">Gasto</option>
+                    <option value="Ingreso">Ingreso</option>
+                </select>
+                <button type="submit" name="btn_movimiento" class="btn-add">+</button>
+            </form>
+
+            <table>
+                <thead>
+                    <tr><th>Detalle</th><th>Monto</th><th>Categoría</th><th>Borrar</th></tr>
+                </thead>
+                <tbody>
+                    {% for m in movimientos %}
+                    <tr>
+                        <td>{{ m.descripcion }}</td>
+                        <td class="monto-{{ m.tipo }}">
+                            {% if m.tipo == 'Gasto' %}-{% else %}+{% endif %}${{ "%.2f"|format(m.monto) }}
+                        </td>
+                        <td><small>{{ m.categoria }}</small></td>
+                        <td><a href="/borrar_mov/{{ m.id }}" style="text-decoration:none">🗑️</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="box">
+            <h3>⏳ Cuentas Pendientes / Deudas</h3>
+            <form method="POST" style="background: #f9f9f9; padding: 15px; border-radius: 10px;">
+                <input type="text" name="descripcion" placeholder="Ej: Pago de Luz" required>
+                <input type="number" step="0.01" name="monto" placeholder="Cuánto debes" required>
+                <button type="submit" name="btn_pendiente" class="btn-debt">Anotar Pendiente</button>
+            </form>
+
+            <table>
+                {% for p in pendientes %}
+                <tr>
+                    <td><b>{{ p.descripcion }}</b><br><small>$ {{ "%.2f"|format(p.monto) }}</small></td>
+                    <td style="text-align: right;">
+                        <a href="/pagar_pendiente/{{ p.id }}" class="btn-pay" onclick="return confirm('¿Confirmas el pago?')">PAGAR</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+
+            <div class="chart-container">
+                <canvas id="graficaTotal"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('graficaTotal').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ labels|tojson }},
+                datasets: [{
+                    data: {{ values|tojson }},
+                    backgroundColor: ['#2ecc71', '#f39c12', '#e74c3c', '#3498db', '#f1c40f', '#9b59b6'],
+                    borderWidth: 2
+                }]
+            },
+            options: { plugins: { legend: { position: 'bottom' } } }
+        });
+    </script>
+</body>
+</html>

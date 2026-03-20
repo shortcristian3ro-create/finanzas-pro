@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mi Panel de Finanzas</title>
+    <style>
+        body { font-family: sans-serif; background: #f0f2f5; padding: 20px; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .saldo { font-size: 24px; font-weight: bold; color: #2c3e50; margin-bottom: 20px; text-align: center; }
+        .ingreso { color: #27ae60; } .gasto { color: #e74c3c; }
+        form { display: flex; gap: 10px; margin-bottom: 20px; }
+        input, select { padding: 8px; border: 1px solid #ddd; border-radius: 5px; }
+        button { background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Hola, {{ nombre }} 👋</h1>
+        <div class="saldo">Saldo Actual: ${{ saldo }}</div>
+
+        <form method="POST">
+            <input type="text" name="descripcion" placeholder="¿En qué gastaste?" required>
+            <input type="number" step="0.01" name="monto" placeholder="Monto" required>
+            <select name="tipo">
+                <option value="Ingreso">Ingreso</option>
+                <option value="Gasto">Gasto</option>
+            </select>
+            <button type="submit">Añadir</button>
+        </form>
+
+        <table>
+            <tr><th>Descripción</th><th>Monto</th><th>Tipo</th></tr>
+            {% for m in movimientos %}
+            <tr>
+                <td>{{ m.descripcion }}</td>
+                <td class="{{ m.tipo|lower }}">${{ m.monto }}</td>
+                <td>{{ m.tipo }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        <br>
+        <a href="/logout">Cerrar Sesión</a>
+    </div>
+</body>
+</html>

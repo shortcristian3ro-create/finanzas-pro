@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Finanzas Pro - Acceso</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); width: 350px; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        .btn-login { background: #3498db; color: white; border: none; width: 100%; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; }
+        .btn-reg { background: #2ecc71; color: white; border: none; width: 100%; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; font-size: 14px; }
+        .alert { padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; font-weight: bold; border: 1px solid; }
+        
+        /* Estilo para los campos trampa: los hacemos invisibles */
+        .hidden-trap {
+            position: absolute;
+            top: -1000px;
+            left: -1000px;
+            opacity: 0;
+            height: 0;
+            width: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h2 style="color: #2c3e50; margin-bottom: 25px;">Finanzas Pro</h2>
+        
+        {% if mensaje %}
+        <div class="alert" style="color: {{ color_alerta }}; border-color: {{ color_alerta }}; background: #fdfdfd;">
+            {{ mensaje }}
+        </div>
+        {% endif %}
+
+        <form method="POST" id="loginForm">
+            <input class="hidden-trap" type="text" name="fake_user">
+            <input class="hidden-trap" type="password" name="fake_password">
+
+            <input type="text" name="usuario" id="userField" placeholder="Usuario" required readonly onfocus="this.removeAttribute('readonly');">
+            <input type="password" name="password" id="passField" placeholder="Contraseña" required readonly onfocus="this.removeAttribute('readonly');">
+            
+            <button type="submit" name="accion" value="login" class="btn-login">Entrar</button>
+            <button type="submit" name="accion" value="registro" class="btn-reg">Crear cuenta nueva</button>
+        </form>
+    </div>
+
+    <script>
+        // Forzamos el reset total del formulario al cargar o al retroceder con el botón del navegador
+        window.addEventListener('pageshow', function() {
+            document.getElementById('loginForm').reset();
+            document.getElementById('userField').value = '';
+            document.getElementById('passField').value = '';
+        });
+    </script>
+</body>
+</html>

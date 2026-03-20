@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de {{ tipo|capitalize }}</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #4361ee; padding: 10px; display: flex; justify-content: center; margin: 0; }
+        .box { background: white; padding: 20px; border-radius: 20px; width: 100%; max-width: 650px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
+        button { background: #2ecc71; color: white; border: none; font-weight: bold; cursor: pointer; }
+        
+        .table-container { overflow-x: auto; } /* Permite deslizar la tabla en móviles */
+        table { width: 100%; border-collapse: collapse; margin-top: 25px; min-width: 400px; }
+        table th { text-align: left; padding: 12px 10px; color: #64748b; font-size: 0.7rem; text-transform: uppercase; border-bottom: 2px solid #f1f5f9; }
+        table td { padding: 12px 10px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; font-size: 0.9rem; }
+        
+        .tag { padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 0.75rem; white-space: nowrap; }
+        .dia-tag { background: #e0e7ff; color: #4361ee; }
+        .fecha-tag { background: #f1f5f9; color: #64748b; }
+        
+        .btn-pay { background: #4361ee; color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 0.7rem; font-weight: bold; }
+        .btn-del { color: #ef4444; text-decoration: none; font-size: 1.2rem; margin-left: 10px; }
+        .status-ok { color: #2ecc71; font-weight: bold; font-size: 0.75rem; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>{{ tipo|capitalize }}</h2>
+        <form method="POST">
+            <input type="text" name="descripcion" placeholder="¿Qué es?" required>
+            <input type="number" step="0.01" name="monto" placeholder="Monto $" required>
+            {% if tipo == 'movimiento' %}
+                <select name="categoria">
+                    <option value="Comida" {% if cat_def == 'Comida' %}selected{% endif %}>🍎 Comida</option>
+                    <option value="Transporte" {% if cat_def == 'Transporte' %}selected{% endif %}>🚗 Transporte</option>
+                    <option value="Ahorro" {% if cat_def == 'Ahorro' %}selected{% endif %}>💰 Ahorro</option>
+                    <option value="Otros" {% if cat_def == 'Otros' %}selected{% endif %}>⚙️ Otros</option>
+                </select>
+                <select name="tipo">
+                    <option value="Gasto" {% if tipo_def == 'Gasto' %}selected{% endif %}>Gasto</option>
+                    <option value="Ingreso" {% if tipo_def == 'Ingreso' %}selected{% endif %}>Ingreso</option>
+                </select>
+            {% elif tipo == 'fijo' %}
+                <input type="number" name="dia" placeholder="Día del mes (1-31)" min="1" max="31" required>
+            {% endif %}
+            <button type="submit">Guardar</button>
+        </form>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Detalle</th>
+                        {% if tipo != 'pendiente' %}<th>Día/Fecha</th>{% endif %}
+                        <th style="text-align:right;">Monto</th>
+                        <th style="text-align:center;">Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in datos %}
+                    <tr>
+                        <td><b>{{ d.descripcion }}</b></td>
+                        {% if tipo == 'fijo' %}
+                            <td><span class="tag dia-tag">Día {{ d.dia_cobro }}</span></td>
+                        {% elif tipo == 'movimiento' %}
+                            <td><span class="tag fecha-tag">{{ d.fecha.strftime('%d %b') }}</span></td>
+                        {% endif %}
+                        <td style="text-align:right; font-weight:bold;">${{ "%.2f"|format(d.monto) }}</td>
+                        <td style="text-align:center;">
+                            {% if tipo == 'movimiento' %}
+                                <a href="/borrar/movimiento/{{ d.id }}" class="btn-del">×</a>
+                            {% else %}
+                                {% set is_pagado = d.pagado if tipo == 'pendiente' else d.pagado_este_mes %}
+                                {% if is_pagado %}
+                                    <span class="status-ok">✅ OK</span>
+                                {% else %}
+                                    <div style="display:flex; align-items:center; justify-content:center;">
+                                        <a href="/pagar/{{ tipo }}/{{ d.id }}" class="btn-pay">PAGAR</a>
+                                        <a href="/borrar/{{ tipo }}/{{ d.id }}" class="btn-del">×</a>
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <a href="/dashboard" style="display:block; text-align:center; color:#666; margin-top:20px; text-decoration:none;">← Volver</a>
+    </div>
+</body>
+</html>

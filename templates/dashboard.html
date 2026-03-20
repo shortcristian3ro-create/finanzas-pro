@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Finanzas Pro</title>
+    <style>
+        :root { --p: #4361ee; --s: #2ecc71; --d: #f72585; --w: #ff9f1c; --bg: #f0f2f5; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; }
+        nav { background: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .value { font-size: 2.2rem; font-weight: bold; margin: 10px 0; color: var(--p); }
+        .btn { display: inline-block; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 10px; border:none; cursor:pointer; text-align:center; }
+        .btn-p { background: var(--p); color: white; }
+        .btn-s { background: #e8f5e9; color: var(--s); }
+        .progress-container { background: #eee; border-radius: 10px; height: 12px; width: 100%; margin: 15px 0; overflow: hidden; }
+        .progress-bar { background: linear-gradient(90deg, var(--s), #4cc9f0); height: 100%; transition: width 0.8s ease; }
+        .meta-info { display: flex; justify-content: space-between; font-size: 0.85rem; color: #666; font-weight: 600; }
+        .edit-meta { font-size: 0.7rem; color: var(--p); cursor: pointer; text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <nav>
+        <h2 style="color: var(--p); margin: 0;">Finanzas Pro</h2>
+        <div>Hola, <b>{{ nombre }}</b> | <a href="/logout" style="color:var(--d); text-decoration:none;">Salir</a></div>
+    </nav>
+    <div class="container">
+        <div class="grid">
+            <div class="card">
+                <h3>💰 Saldo Disponible</h3>
+                <div class="value">${{ "%.2f"|format(saldo) }}</div>
+                <a href="/seccion/movimiento" class="btn btn-p" style="width:90%">+ Nuevo Movimiento</a>
+            </div>
+
+            <div class="card" style="border-bottom: 4px solid var(--s);">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3>🎯 Meta de Ahorro</h3>
+                    <span class="edit-meta" onclick="document.getElementById('fMeta').style.display='block'">Editar Meta</span>
+                </div>
+                <div class="value" style="color: var(--s);">${{ "%.2f"|format(ahorros) }}</div>
+                <div id="fMeta" style="display:none; margin-bottom:10px;">
+                    <form action="/actualizar_meta" method="POST" style="display:flex; gap:5px;">
+                        <input type="number" name="nueva_meta" placeholder="Meta $" style="width:70%; padding:5px; border-radius:5px; border:1px solid #ddd;">
+                        <button type="submit" class="btn-p" style="padding:5px; font-size:0.7rem; border-radius:5px;">OK</button>
+                    </form>
+                </div>
+                <div class="meta-info"><span>{{ progreso|int }}%</span><span>Meta: ${{ meta|int }}</span></div>
+                <div class="progress-container"><div class="progress-bar" style="width: {{ progreso }}%;"></div></div>
+                <a href="/seccion/movimiento?cat=Ahorro&t=Ingreso" class="btn btn-s" style="width:90%">Ahorrar más</a>
+            </div>
+
+            <div class="card">
+                <h3>⏳ Deudas / Fijos</h3>
+                <div class="value" style="color: var(--w);">${{ "%.2f"|format(deudas) }}</div>
+                <a href="/seccion/pendiente" class="btn btn-s" style="color:var(--w); background:#fff3e0; width:90%">Deudas</a>
+                <a href="/seccion/fijo" class="btn btn-s" style="width:90%">Gastos Fijos</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
