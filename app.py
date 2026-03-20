@@ -2,20 +2,33 @@ from flask import Flask, render_template, request, session, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import os
+import urllib.parse
 
 app = Flask(__name__)
 app.secret_key = "clave_secreta_pro_2026"
 
-# --- CONFIGURACIÓN DE BASE DE DATOS (SOPORTE PARA SUPABASE Y LOCAL) ---
+# --- CONFIGURACIÓN DE BASE DE DATOS (VERSIÓN ROBUSTA PARA SUPABASE) ---
 uri = os.environ.get("DATABASE_URL")
 
 if uri:
-    # Si estamos en Render/Nube, usamos Supabase
+    # 1. Limpieza de espacios y ajuste de protocolo
+    uri = uri.strip()
     if uri.startswith("postgres://"):
         uri = uri.replace("postgres://", "postgresql://", 1)
+    
+    # 2. Manejo especial para contraseñas con símbolos como $
+    # Si la URL contiene el símbolo $ sin codificar, lo corregimos
+    if "$" in uri and "%24" not in uri:
+        # Extraemos las partes para codificar solo la contraseña
+        try:
+            # Reemplazamos el $ por su código seguro %24
+            uri = uri.replace("$", "%24")
+        except Exception as e:
+            print(f"Error procesando URI: {e}")
+
     app.config['SQLALCHEMY_DATABASE_URI'] = uri
 else:
-    # Si estás en tu PC local, usamos SQLite
+    # Configuración local para tu PC
     basedir = os.path.abspath(os.path.dirname(__file__))
     db_path = os.path.join(basedir, 'instance', 'usuarios.db')
     if not os.path.exists(os.path.join(basedir, 'instance')):
@@ -164,8 +177,6 @@ def actualizar_meta():
 def logout():
     session.clear(); return redirect(url_for('login'))
 
-# CONFIGURACIÓN DINÁMICA DE PUERTO Y HOST
 if __name__ == "__main__":
-    # Render asigna el puerto mediante una variable de entorno llamada PORT
     puerto = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=puerto)
