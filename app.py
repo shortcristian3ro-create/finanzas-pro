@@ -2,33 +2,24 @@ from flask import Flask, render_template, request, session, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import os
-import urllib.parse
 
 app = Flask(__name__)
 app.secret_key = "clave_secreta_pro_2026"
 
-# --- CONFIGURACIÓN DE BASE DE DATOS (VERSIÓN ROBUSTA PARA SUPABASE) ---
+# --- CONFIGURACIÓN DE BASE DE DATOS ---
 uri = os.environ.get("DATABASE_URL")
 
 if uri:
-    # 1. Limpieza de espacios y ajuste de protocolo
     uri = uri.strip()
     if uri.startswith("postgres://"):
         uri = uri.replace("postgres://", "postgresql://", 1)
     
-    # 2. Manejo especial para contraseñas con símbolos como $
-    # Si la URL contiene el símbolo $ sin codificar, lo corregimos
+    # Manejo seguro de contraseñas con el símbolo $
     if "$" in uri and "%24" not in uri:
-        # Extraemos las partes para codificar solo la contraseña
-        try:
-            # Reemplazamos el $ por su código seguro %24
-            uri = uri.replace("$", "%24")
-        except Exception as e:
-            print(f"Error procesando URI: {e}")
+        uri = uri.replace("$", "%24")
 
     app.config['SQLALCHEMY_DATABASE_URI'] = uri
 else:
-    # Configuración local para tu PC
     basedir = os.path.abspath(os.path.dirname(__file__))
     db_path = os.path.join(basedir, 'instance', 'usuarios.db')
     if not os.path.exists(os.path.join(basedir, 'instance')):
@@ -68,11 +59,15 @@ class GastoFijo(db.Model):
     pagado_este_mes = db.Column(db.Boolean, default=False)
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'))
 
+# ESCUDO ANTICHOQUES PARA RENDER
 with app.app_context():
-    db.create_all()
+    try:
+        db.create_all()
+        print("✅ Tablas sincronizadas con la base de datos con éxito.")
+    except Exception as e:
+        print(f"❌ ERROR FATAL AL CONECTAR CON SUPABASE: {e}")
 
 # --- RUTAS ---
-
 @app.route("/", methods=["GET", "POST"])
 def login():
     mensaje = None; color = "red"
