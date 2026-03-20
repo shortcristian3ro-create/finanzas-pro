@@ -10,16 +10,13 @@ app.secret_key = "clave_secreta_pro_2026"
 uri = os.environ.get("DATABASE_URL")
 
 if uri:
+    # Limpieza básica de la URL para Render
     uri = uri.strip()
     if uri.startswith("postgres://"):
         uri = uri.replace("postgres://", "postgresql://", 1)
-    
-    # Manejo seguro de contraseñas con el símbolo $
-    if "$" in uri and "%24" not in uri:
-        uri = uri.replace("$", "%24")
-
     app.config['SQLALCHEMY_DATABASE_URI'] = uri
 else:
+    # Configuración local por si pruebas en tu PC
     basedir = os.path.abspath(os.path.dirname(__file__))
     db_path = os.path.join(basedir, 'instance', 'usuarios.db')
     if not os.path.exists(os.path.join(basedir, 'instance')):
@@ -59,13 +56,13 @@ class GastoFijo(db.Model):
     pagado_este_mes = db.Column(db.Boolean, default=False)
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'))
 
-# ESCUDO ANTICHOQUES PARA RENDER
+# Esto crea las tablas automáticamente al iniciar
 with app.app_context():
     try:
         db.create_all()
-        print("✅ Tablas sincronizadas con la base de datos con éxito.")
+        print("✅ Tablas creadas en Supabase con éxito.")
     except Exception as e:
-        print(f"❌ ERROR FATAL AL CONECTAR CON SUPABASE: {e}")
+        print(f"❌ Error al conectar: {e}")
 
 # --- RUTAS ---
 @app.route("/", methods=["GET", "POST"])
